@@ -116,6 +116,7 @@ router.post(
       const userData = {
         name: req.body.name,
         email: req.body.email,
+        phone:req.body.phone,
       
         // password: hashAndCompare.hash(req.body.password),
         password: hashAndCompare.hash(req.body.password),
@@ -138,18 +139,6 @@ router.post(
   }
 );
 
-// router.put("/logout", authorized, async (req, res) => {
-//   try {
-//     const query = util.promisify(conn.query).bind(conn); //transform query mysql -> promise to use [await/async]
-//     await query("UPDATE users SET status = 0 WHERE id = ?", [
-//       res.locals.user.id,
-//     ]);
-//     res.json("successfully logged out");
-//   } catch (error) {
-//     console.log("ERROR!!!!!!!!!");
-//     console.log(error);
-//     res.status(500).json({ error: error });
-//   }
-// });
+
 
 module.exports = router;
