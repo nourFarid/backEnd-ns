@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs')
+
  const hash = ( plaintext, salt = process.env.SALT_ROUND ) => {
     const hashResult = bcrypt.hashSync(plaintext, parseInt(salt))
     return hashResult

@@ -12,7 +12,13 @@ router.get(
     try {
       const query = util.promisify(conn.query).bind(conn);
       const usersID = await query(
-        `SELECT name, studentID FROM users JOIN studentcourse  ON users.id = studentcourse.studentID WHERE studentcourse.courseID = ${req.params.id}`,
+        `SELECT users.name AS student_name, users.id, courses.name AS course_name
+        FROM users
+        JOIN studentcourse ON users.id = studentcourse.studentID
+        JOIN courses ON studentcourse.courseID = courses.id
+        WHERE courses.name = '${req.params.id}'
+        
+        `,
         []
       );
       //   const usersName = await query("select name from users where id = ?", [
