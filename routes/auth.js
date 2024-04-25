@@ -55,6 +55,7 @@ console.log('====================================');
 
       if (checkPassword) {
         delete checkEmailExists[0].password;
+       
         return res.status(200).json(checkEmailExists[0]);
       } else {
        return res.status(404).json({
