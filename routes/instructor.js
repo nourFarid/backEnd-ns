@@ -3,10 +3,12 @@ const conn = require("../db/dbConnection");
 const instructor = require("../middleware/instructor");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
+const auth= require('../auth')
+
 //------------- list students-----------------
 router.get(
   "/list/:id",
-  // instructor,
+  auth.auth([auth.roles.instructor]),
   body("id"),
   async (req, res) => {
     try {
@@ -35,7 +37,7 @@ router.get(
 //----------set grades--------------------
 router.post(
   "/assignGrades",
-  // instructor, // params
+  auth.auth([auth.roles.instructor]),
   body("courseID"),
   body("grade"),
   body("studentID"),

@@ -3,11 +3,11 @@ const conn = require("../db/dbConnection");
 const student = require("../middleware/student");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-
+const auth= require('../auth')
 // register course
 router.post(
   "/registerCourse",
-  // student,
+  auth.auth([auth.roles.student]),
   body("studentID ")
     .isLength({ max: 2 })
     .withMessage("please enter a your valid ID!"),
@@ -79,13 +79,14 @@ router.post(
 // view grades
 router.get(
   "/listGrades/:id",
-  // student,
-  // body("id"),
+  auth.auth([auth.roles.student]),
   async (req, res) => {
     try {
       const query = util.promisify(conn.query).bind(conn);
       const users = await query(
-        "select grades,courseID from studentcourse where studentID = ?",
+        `select grades,courseID,name from studentcourse
+        join courses on courseID = courses.id
+        where studentID = ?`,
         [req.params.id]
       );
       res.status(200).json(users);
