@@ -1,43 +1,85 @@
 const router = require("express").Router();
 const conn = require("../db/dbConnection");
-const admin = require("../middleware/admin");
+const crypto = require('crypto');
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const upload = require("../middleware/upload");
-const fs = require("fs");
+const bcrypt = require("bcrypt");
+const auth= require('../auth')
+const dotenv = require("dotenv");
+dotenv.config();
 
+const {encryptData,decrypt}= require('../encryptionAndDecryption')
 //---1-COURSES---\\
-
 //create
+// router.post(
+//   "/create",
+//   auth.auth([auth.roles.admin]),
+//   body("name")
+//     .isString()
+//     .withMessage("please enter a valid course name")
+//     .isLength({ min: 2 })
+//     .withMessage("please enter at least 2 characters"),
+  
+//   async (req, res) => {
+//     try {
+//       const errors = validationResult(req);
+//       if (!errors.isEmpty()) {
+//         return res.status(400).json({ errors: errors.array() });
+//       }
+
+//       const { name } = req.body;
+//       const { iv, encryptedData } = encrypt(name);
+// console.log('====================================');
+// console.log(iv);
+// console.log(encryptedData);
+// console.log('====================================');
+//       const course = {
+//         name: encryptedData,
+//         iv: iv,
+      
+//       };
+//       const query = util.promisify(conn.query).bind(conn);
+//       await query("insert into courses set ? ", course);
+//     return  res.status(200).json({
+//         msg: "course created successfully !",
+//       });
+//     } catch (error) {
+//       console.log(error);
+//      return res.status(500).json(error);
+//     }
+//   }
+// );
 router.post(
   "/create",
-  // admin,
+  auth.auth([auth.roles.admin]),
   body("name")
     .isString()
     .withMessage("please enter a valid course name")
     .isLength({ min: 2 })
     .withMessage("please enter at least 2 characters"),
-  
   async (req, res) => {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
-      const course = {
-        name: req.body.name,
-      
-      };
+
+      const { name } = req.body;
+      const { encryptedData, iv } = encryptData(name);
+
+const course = {
+    name: encryptedData,
+    iv: iv
+};
       const query = util.promisify(conn.query).bind(conn);
       await query("insert into courses set ? ", course);
-    return  res.status(200).json({
+
+      return res.status(200).json({
         msg: "course created successfully !",
       });
     } catch (error) {
       console.log(error);
-     return res.status(500).json(error);
+      return res.status(500).json(error);
     }
   }
 );
@@ -45,7 +87,7 @@ router.post(
 //update
 router.put(
   "/updateourse", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
   body("name")
     .isString()
     .withMessage("please enter a valid course name")
@@ -97,7 +139,7 @@ router.put(
 //delete
 router.delete(
   "/delete/:id", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
   async (req, res) => {
     try {
       // 1- CHECK IF COURSE EXISTS OR NOT
@@ -123,14 +165,25 @@ router.delete(
 //list
 router.get(
   "/listCourse", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
 
   async (req, res) => {
     try {
       // 4- UPDATE COURSE
       const query = util.promisify(conn.query).bind(conn);
       const listInst = await query("select * from courses ");
-
+      console.log('====================================');
+      console.log(listInst);
+      console.log('====================================');
+     // Decrypt course names
+    //  const decryptedList = listInst.map(course => {
+    //   if (course.iv && course.name) {
+    //     const decryptedName = decrypt(course.name, course.iv);
+    //     return { ...course, name: decryptedName };
+    //   } else {
+    //     return course;
+    //   }
+    // });
      return res.status(200).json(listInst);
     } catch (err) {
       console.log(err);
@@ -144,8 +197,8 @@ router.get(
 //create
 router.post(
   "/createInstructor",
-  // upload.single("image"),
-  // admin,
+ 
+  auth.auth([auth.roles.admin]),
   body("name")
     .isString()
     .withMessage("please enter a valid instructor name")
@@ -195,13 +248,17 @@ router.post(
 //list
 router.get(
   "/listInstructor", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
 
   async (req, res) => {
     try {
       // 4- UPDATE COURSE
       const query = util.promisify(conn.query).bind(conn);
       const listInst = await query("select * from users  where role = 2");
+      listInst.map((inst)=>{
+        delete inst.password;
+      })
+
 
      return res.status(200).json(listInst);
     } catch (err) {
@@ -214,7 +271,7 @@ router.get(
 //update
 router.put(
   "/updateInstructor", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
   body("name")
     .isString()
     .withMessage("please enter a valid instructor name")
@@ -281,8 +338,8 @@ router.put(
 //delete
 router.delete(
   "/deleteInstructor/:id", // params
-  // admin,
-  // body("id"),
+  auth.auth([auth.roles.admin]),
+ 
   async (req, res) => {
     try {
       // 1- CHECK IF instructor EXISTS OR NOT
@@ -308,7 +365,7 @@ router.delete(
 //---3-Assign Instructors to Courses---\\
 router.post(
   "/AssignInstructor", // params
-  // admin,
+  auth.auth([auth.roles.admin]),
   body("name")
     .isString()
     .withMessage("please enter a valid instructor name")

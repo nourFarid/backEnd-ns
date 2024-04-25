@@ -7,6 +7,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const authorized = require("../middleWare/authorize");
 const hashAndCompare = require  ('../HashAndCompare.js')
+const GenerateAndVerifyToken= require('../GenerateAndVerifyToken')
 
 //LOGIN
 
@@ -55,7 +56,17 @@ console.log('====================================');
 
       if (checkPassword) {
         delete checkEmailExists[0].password;
-       
+        const payload = {
+          id :checkEmailExists[0].id,
+          email:checkEmailExists[0].email,
+          role:checkEmailExists[0].role,
+      }
+    
+      console.log('====================================');
+      console.log(payload);
+      console.log('====================================');
+      const token = GenerateAndVerifyToken.generateToken({ payload, signature: process.env.TOKEN_SIGNATURE });
+      checkEmailExists[0].token=token
         return res.status(200).json(checkEmailExists[0]);
       } else {
        return res.status(404).json({
