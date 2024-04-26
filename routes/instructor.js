@@ -1,10 +1,10 @@
 const router = require("express").Router();
 const conn = require("../db/dbConnection");
-const instructor = require("../middleware/instructor");
-const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-const auth= require('../auth')
 
+const { body, validationResult } = require("express-validator");
+const auth= require('../auth')
+const {encryptData}= require('../encryptionAndDecryption')
 //------------- list students-----------------
 router.get(
   "/list/:id",
@@ -18,7 +18,7 @@ router.get(
         FROM users
         JOIN studentcourse ON users.id = studentcourse.studentID
         JOIN courses ON studentcourse.courseID = courses.id
-        WHERE courses.name = '${req.params.id}'
+        WHERE courses.id = '${req.params.id}'
         
         `,
         []
@@ -41,7 +41,6 @@ router.post(
   body("courseID"),
   body("grade"),
   body("studentID"),
-  // body("StudentID"),
   async (req, res) => {
     try {
       const query = util.promisify(conn.query).bind(conn);
@@ -61,10 +60,12 @@ router.post(
       if (!course[0]) {
       return  res.status(404).json({ ms: "course not found !" });
       }
+const{grade}=req.body;
 
       // 3- PREPARE grade OBJECT
       const gradeObj = {
-        grades: req.body.grade,
+        grades: grade,
+        
       };
 
       // 4- ASSIGN COURSE

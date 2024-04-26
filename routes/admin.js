@@ -1,54 +1,15 @@
 const router = require("express").Router();
 const conn = require("../db/dbConnection");
-const crypto = require('crypto');
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-const bcrypt = require("bcrypt");
+const hashAndCompare = require  ('../HashAndCompare.js')
 const auth= require('../auth')
 const dotenv = require("dotenv");
 dotenv.config();
 
-const {encryptData,decrypt}= require('../encryptionAndDecryption')
+const {encryptData}= require('../encryptionAndDecryption')
 //---1-COURSES---\\
-//create
-// router.post(
-//   "/create",
-//   auth.auth([auth.roles.admin]),
-//   body("name")
-//     .isString()
-//     .withMessage("please enter a valid course name")
-//     .isLength({ min: 2 })
-//     .withMessage("please enter at least 2 characters"),
-  
-//   async (req, res) => {
-//     try {
-//       const errors = validationResult(req);
-//       if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//       }
 
-//       const { name } = req.body;
-//       const { iv, encryptedData } = encrypt(name);
-// console.log('====================================');
-// console.log(iv);
-// console.log(encryptedData);
-// console.log('====================================');
-//       const course = {
-//         name: encryptedData,
-//         iv: iv,
-      
-//       };
-//       const query = util.promisify(conn.query).bind(conn);
-//       await query("insert into courses set ? ", course);
-//     return  res.status(200).json({
-//         msg: "course created successfully !",
-//       });
-//     } catch (error) {
-//       console.log(error);
-//      return res.status(500).json(error);
-//     }
-//   }
-// );
 router.post(
   "/create",
   auth.auth([auth.roles.admin]),
@@ -114,9 +75,10 @@ router.put(
       }
 
       // 3- PREPARE COURSE OBJECT
+      const { encryptedData, iv } = encryptData(req.body.name);
       const courseObj = {
-        name: req.body.name,
-      
+        name: encryptedData,
+        iv: iv,
         id: req.body.id,
       };
 
@@ -165,7 +127,7 @@ router.delete(
 //list
 router.get(
   "/listCourse", // params
-  auth.auth([auth.roles.admin]),
+  auth.auth([auth.roles.admin, auth.roles.instructor]), 
 
   async (req, res) => {
     try {
@@ -211,12 +173,6 @@ router.post(
     .withMessage("please enter a valid password")
     .isLength({ min: 8, max: 16 })
     .withMessage("please enter a valid password between 8 and 16 characters"),
-
-  // body("role")
-  //   .isString()
-  //   .withMessage("please enter a valid role")
-  //   .isLength({ max: 5 })
-  //   .withMessage("please enter a valid role"),
   body("phone"),
 
   async (req, res) => {
@@ -225,14 +181,22 @@ router.post(
       if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
       }
+      const { name, email,  phone } = req.body;
+
+      // Encrypt sensitive data
+      const encryptedName = encryptData(name);
+      const encryptedEmail = encryptData(email);
+      const encryptedPhone = encryptData(phone);
+
       const instructor = {
-        name: req.body.name,
-        // status: req.body.status,
-        email: req.body.email,
-        phone: req.body.phone,
-        password: await bcrypt.hash(req.body.password, 10),
+        name: encryptedName.encryptedData,
+        email: email,
+        phone: encryptedPhone.encryptedData,
+        password: hashAndCompare.hash(req.body.password),
+        
         role: "2",
-        // token: crypto.randomBytes(16).toString("hex"),
+        iv:encryptedName.iv
+
       };
       const query = util.promisify(conn.query).bind(conn);
       await query("insert into users set ? ", instructor);
@@ -277,11 +241,7 @@ router.put(
     .withMessage("please enter a valid instructor name")
     .isLength({ min: 2 })
     .withMessage("please enter at least 2 characters"),
-  // body("status")
-  //   .isString()
-  //   .withMessage("please enter a valid status")
-  //   .isLength({ max: 5 })
-  //   .withMessage("please enter at most 1 character"),
+ 
   body("email").isString().withMessage("please enter a valid email"),
   body("password")
     .isString()
@@ -306,22 +266,24 @@ router.put(
       if (!instructor[0]) {
        return res.status(404).json({ ms: "instructor not found !" });
       }
+      const { name, email,  phone } = req.body;
 
       // 3- PREPARE instructor OBJECT
-      const instructorObj = {
-        name: req.body.name,
-        // status: req.body.status,
-        email: req.body.email,
-        phone: req.body.phone,
-        id: req.body.id,
+      const encryptedName = encryptData(name);
+      const encryptedEmail = encryptData(email);
+      const encryptedPhone = encryptData(phone);
 
-        password: await bcrypt.hash(req.body.password, 10),
+      const instructorObj = {
+        name: encryptedName.encryptedData,
+        email: encryptedEmail.encryptedData,
+        phone: encryptedPhone.encryptedData,
+        id: req.body.id,
+        password:hashAndCompare.hash(req.body.password),
       };
 
      
       await query("update users set ? where id = ?", [
         instructorObj,
-        // instructor[0].id,
         req.body.id,
       ]);
 
@@ -366,7 +328,7 @@ router.delete(
 router.post(
   "/AssignInstructor", // params
   auth.auth([auth.roles.admin]),
-  body("name")
+  body("course_id")
     .isString()
     .withMessage("please enter a valid instructor name")
     .isLength({ min: 2 })
@@ -388,22 +350,25 @@ router.post(
       return  res.status(404).json({ ms: "instructor not found !" });
       }
       // 2- CHECK IF course EXISTS OR NOT
-      const course = await query("select * from courses where name = ?", [
-        req.body.name,
+      const course = await query("select * from courses where id = ?", [
+        req.body.course_id,
       ]);
       if (!course[0]) {
       return  res.status(404).json({ ms: "course not found !" });
       }
 
       // 3- PREPARE instructor OBJECT
+      
       const instructorObj = {
         instructor_id: req.body.instructor_id,
       };
-
+console.log('====================================');
+console.log(req.body.id);
+console.log('====================================');
       // 4- ASSIGN COURSE
-      await query("update courses set ? where name = ?", [
+      await query("update courses set ? where id = ?", [
         instructorObj,
-        req.body.name,
+        req.body.course_id,
       ]);
 
     return  res.status(200).json({

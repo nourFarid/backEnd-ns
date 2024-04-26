@@ -1,9 +1,11 @@
 const router = require("express").Router();
 const conn = require("../db/dbConnection");
-const student = require("../middleware/student");
+// const student = require("../middleware/student");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
 const auth= require('../auth')
+const {encryptData}= require('../encryptionAndDecryption')
+
 // register course
 router.post(
   "/registerCourse",
@@ -50,17 +52,10 @@ router.post(
           ],
         });
       }
-      // if (checkstudentExists.length == 0 && checkcourseExists.length == 0) {
-      //   res.status(404).json({
-      //     errors: [
-      //       {
-      //         msg: "student and course are not found !",
-      //       },
-      //     ],
-      //   });
-      // }
 
       // 3- PREPARE OBJECT register data TO -> SAVE
+
+
       const registerdata = {
         studentID: req.body.studentID,
         courseID: req.body.courseID,
@@ -84,7 +79,7 @@ router.get(
     try {
       const query = util.promisify(conn.query).bind(conn);
       const users = await query(
-        `select grades,courseID,name from studentcourse
+        `select grades,courseID,name,iv from studentcourse
         join courses on courseID = courses.id
         where studentID = ?`,
         [req.params.id]
