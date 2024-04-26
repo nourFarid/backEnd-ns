@@ -1,13 +1,12 @@
 const router = require("express").Router();
-const { log } = require("console");
+
 const conn = require("../db/dbConnection");
 const { body, validationResult } = require("express-validator");
 const util = require("util");
-const bcrypt = require("bcrypt");
-const crypto = require("crypto");
-const authorized = require("../middleWare/authorize");
+
 const hashAndCompare = require  ('../HashAndCompare.js')
 const GenerateAndVerifyToken= require('../GenerateAndVerifyToken')
+const {encryptData}= require('../encryptionAndDecryption')
 
 //LOGIN
 
@@ -125,10 +124,17 @@ router.post(
       console.log('====================================');
       console.log(hashedPassword);
       console.log('====================================');
+      const { name,email,phone } = req.body;
+      const encryptedName  = encryptData(name);
+      
+      const encryptedPhone  = encryptData(phone);
+      
+      
       const userData = {
-        name: req.body.name,
-        email: req.body.email,
-        phone:req.body.phone,
+        name: encryptedName.encryptedData,
+        email:email,
+        phone:encryptedPhone.encryptedData,
+        iv:encryptedName.iv,
       
         // password: hashAndCompare.hash(req.body.password),
         password: hashAndCompare.hash(req.body.password),
