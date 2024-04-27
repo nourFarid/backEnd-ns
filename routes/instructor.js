@@ -14,7 +14,7 @@ router.get(
     try {
       const query = util.promisify(conn.query).bind(conn);
       const usersID = await query(
-        `SELECT users.name AS student_name, users.id, courses.name AS course_name
+        `SELECT users.name AS student_name, users.id, courses.name AS course_name,users.iv, courses.iv As course_iv
         FROM users
         JOIN studentcourse ON users.id = studentcourse.studentID
         JOIN courses ON studentcourse.courseID = courses.id

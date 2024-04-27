@@ -1,4 +1,5 @@
 const router = require("express").Router();
+
 const conn = require("../db/dbConnection");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
@@ -127,7 +128,7 @@ router.delete(
 //list
 router.get(
   "/listCourse", // params
-  auth.auth([auth.roles.admin, auth.roles.instructor]), 
+  // auth.auth([auth.roles.admin, auth.roles.instructor]), 
 
   async (req, res) => {
     try {
