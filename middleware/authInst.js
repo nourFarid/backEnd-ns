@@ -1,10 +1,10 @@
 const jwt = require('jsonwebtoken')
-const conn= require('./db/dbConnection')
+const conn= require('../db/dbConnection')
 const util = require("util"); // helper
 const roles = {
-    admin:"1",
+    
     instructor:"2",
-    student:"3",
+   
 }
 
 Object.freeze(roles)//3shan amn3 en 7d y3del 3leha

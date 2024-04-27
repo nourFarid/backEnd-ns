@@ -4,9 +4,9 @@ const conn = require("../db/dbConnection");
 const { body, validationResult } = require("express-validator");
 const util = require("util");
 
-const hashAndCompare = require  ('../HashAndCompare.js')
-const GenerateAndVerifyToken= require('../GenerateAndVerifyToken')
-const {encryptData}= require('../encryptionAndDecryption')
+const hashAndCompare = require  ('../helper/HashAndCompare.js')
+const GenerateAndVerifyToken= require('../helper/GenerateAndVerifyToken.js')
+const {encryptData}= require('../helper/encryptionAndDecryption.js')
 
 //LOGIN
 router.post(

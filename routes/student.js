@@ -3,8 +3,8 @@ const conn = require("../db/dbConnection");
 // const student = require("../middleware/student");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-const auth= require('../auth')
-const {encryptData}= require('../encryptionAndDecryption')
+const auth= require('../middleware/authStu')
+const {encryptData}= require('../helper/encryptionAndDecryption')
 
 // register course
 router.post(
