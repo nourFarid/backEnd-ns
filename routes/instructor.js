@@ -3,8 +3,8 @@ const conn = require("../db/dbConnection");
 const util = require("util"); // helper
 
 const { body, validationResult } = require("express-validator");
-const auth= require('../auth')
-const {encryptData}= require('../encryptionAndDecryption')
+const auth= require('../middleware/authInst')
+const {encryptData}= require('../helper/encryptionAndDecryption')
 //------------- list students-----------------
 router.get(
   "/list/:id",

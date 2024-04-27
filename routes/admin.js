@@ -3,12 +3,12 @@ const router = require("express").Router();
 const conn = require("../db/dbConnection");
 const { body, validationResult } = require("express-validator");
 const util = require("util"); // helper
-const hashAndCompare = require  ('../HashAndCompare.js')
-const auth= require('../auth')
+const hashAndCompare = require  ('../helper/HashAndCompare.js')
+const auth= require('../middleware/authAdmin.js')
 const dotenv = require("dotenv");
 dotenv.config();
 
-const {encryptData}= require('../encryptionAndDecryption')
+const {encryptData}= require('../helper/encryptionAndDecryption.js')
 //---1-COURSES---\\
 
 router.post(
