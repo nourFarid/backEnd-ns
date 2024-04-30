@@ -64,8 +64,14 @@ router.post(
       console.log('====================================');
       const token = GenerateAndVerifyToken.generateToken({ payload, signature: process.env.TOKEN_SIGNATURE });
       checkEmailExists[0].token=token
-        req.session.user = checkEmailExists[0]; // Store user in session
-        return res.status(200).json(req.session);
+        req.session.user = checkEmailExists[0]; 
+        const user=
+        {
+          role:checkEmailExists[0].role,
+          token:checkEmailExists[0].token
+        }
+        // Store user in session
+        return res.status(200).json(user);
       } else {
         return res.status(404).json({
           errors: [
