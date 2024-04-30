@@ -186,7 +186,7 @@ router.post(
 
       // Encrypt sensitive data
       const encryptedName = encryptData(name);
-      const encryptedEmail = encryptData(email);
+      // const encryptedEmail = encryptData(email);
       const encryptedPhone = encryptData(phone);
 
       const instructor = {
